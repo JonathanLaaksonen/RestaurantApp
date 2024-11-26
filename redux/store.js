@@ -1,10 +1,10 @@
-import { createStore, combineReducers } from 'redux';
+import { configureStore } from '@reduxjs/toolkit';
 import { restaurantsReducer } from './reducers';
 
-const rootReducer = combineReducers({
-  restaurants: restaurantsReducer,
+const store = configureStore({
+  reducer: {
+    restaurants: restaurantsReducer,
+  },
 });
-
-const store = createStore(rootReducer);
 
 export default store;

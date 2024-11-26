@@ -10,19 +10,22 @@ const HomeScreen = () => {
   const restaurants = useSelector((state) => state.restaurants.list);
 
   useEffect(() => {
-    // Fetch restaurant data when component mounts
-    dispatch(fetchRestaurants());
+    // Fetch restaurant data when the component mounts with an initial search term
+    dispatch(fetchRestaurants('restaurant'));
   }, [dispatch]);
 
-  // Filter restaurants based on search query and visit status
+  const handleSearch = () => {
+    // Fetch restaurants based on the search query
+    dispatch(fetchRestaurants(searchQuery));
+  };
+
   const filteredRestaurants = restaurants.filter((restaurant) => {
-    const matchesSearch = restaurant.name.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesFilter =
       filterStatus === 'All' ||
       (filterStatus === 'To Visit' && !restaurant.visited) ||
       (filterStatus === 'Visited' && restaurant.visited);
 
-    return matchesSearch && matchesFilter;
+    return matchesFilter;
   });
 
   const handleSetVisitStatus = (id) => {
@@ -36,6 +39,7 @@ const HomeScreen = () => {
         placeholder="Search Restaurants"
         value={searchQuery}
         onChangeText={(text) => setSearchQuery(text)}
+        onSubmitEditing={handleSearch}
       />
 
       <View style={styles.filterContainer}>

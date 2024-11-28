@@ -14,11 +14,16 @@ export const restaurantsReducer = (state = initialState, action) => {
     case SET_VISIT_STATUS:
       return {
         ...state,
-        list: state.list.map((restaurant) =>
-          restaurant.id === action.payload
-            ? { ...restaurant, visited: !restaurant.visited }
-            : restaurant
-        ),
+        list: state.list.map((restaurant) => {
+          if (restaurant.id === action.payload.id) {
+            // Päivitetään ravintolan tila 'visited' ja 'toVisit' -kenttien mukaisesti
+            return {
+              ...restaurant,
+              ...action.payload.status,
+            };
+          }
+          return restaurant;
+        }),
       };
     default:
       return state;

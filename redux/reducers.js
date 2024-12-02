@@ -11,20 +11,21 @@ export const restaurantsReducer = (state = initialState, action) => {
         ...state,
         list: action.payload,
       };
-    case SET_VISIT_STATUS:
-      return {
-        ...state,
-        list: state.list.map((restaurant) => {
-          if (restaurant.id === action.payload.id) {
-            // Päivitetään ravintolan tila 'visited' ja 'toVisit' -kenttien mukaisesti
-            return {
-              ...restaurant,
-              ...action.payload.status,
-            };
-          }
-          return restaurant;
-        }),
-      };
+      case SET_VISIT_STATUS:
+        return {
+          ...state,
+          list: state.list.map((restaurant) => {
+            if (restaurant.id === action.payload.id) {
+              // Päivitä ravintolan tila 'visited' ja 'toVisit' -kenttien mukaisesti
+              return {
+                ...restaurant,
+                ...action.payload.status,
+              };
+            }
+            return restaurant;
+          }),
+        };
+      
     default:
       return state;
   }

@@ -61,7 +61,7 @@ export const addRestaurant = (restaurant) => {
 
 // Päivitä ravintolan tila Firebase-tietokannassa
 export const setVisitStatus = (id, status) => {
-  return async () => {
+  return async (dispatch) => {
     try {
       const restaurantRef = ref(db, `restaurants/${id}`);
       
@@ -84,12 +84,23 @@ export const setVisitStatus = (id, status) => {
         };
       }
 
-      console.log('Updating restaurant status with data:', updateData);
+      console.log('Päivitetään ravintolan tila datalla:', updateData);
       await update(restaurantRef, updateData);
-      console.log('Restaurant status updated successfully');
+      console.log('Ravintolan tila päivitettiin onnistuneesti');
+
+      // Lähetä Redux-tilan päivitys
+      dispatch({
+        type: SET_VISIT_STATUS,
+        payload: {
+          id,
+          status: updateData,
+        },
+      });
+
     } catch (error) {
-      console.error('Error setting visit status:', error);
+      console.error('Virhe ravintolan tilan asettamisessa:', error);
     }
   };
 };
+
 

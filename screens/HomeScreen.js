@@ -1,29 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, Button } from 'react-native';
+import { View, Text, TextInput, FlatList, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchRestaurants, setVisitStatus, addRestaurant } from '../redux/actions';
+import { fetchRestaurants, setVisitStatus } from '../redux/actions';
+import { getAuth, signOut } from 'firebase/auth';
 
-const HomeScreen = () => {
+// Kuvan tuominen paikallisesta kansiosta
+const searchIcon = require('../assets/search.png');
+
+const HomeScreen = ({ navigation }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState('Restaurants');
   const [selectedRestaurant, setSelectedRestaurant] = useState(null);
   const dispatch = useDispatch();
-  const restaurants = useSelector((state) => state.restaurants.list);
+  const restaurants = useSelector((state) => state.restaurants.list || []);
 
   useEffect(() => {
-    // Fetch restaurant data when the component mounts with an initial search term
     dispatch(fetchRestaurants('restaurant'));
   }, [dispatch]);
 
   const handleSearch = async () => {
-    // Fetch restaurants based on the search query
     await dispatch(fetchRestaurants(searchQuery));
   };
 
   // Filter the restaurants based on the filter status
   const filteredRestaurants = restaurants.filter((restaurant) => {
     if (filterStatus === 'Restaurants') {
-      return !restaurant.visited && !restaurant.toVisit; // Show all restaurants initially that are not marked
+      return !restaurant.visited && !restaurant.toVisit;
     }
     if (filterStatus === 'To Visit') {
       return restaurant.toVisit;
@@ -36,9 +38,8 @@ const HomeScreen = () => {
 
   const handleSetVisitStatus = (id, status) => {
     dispatch(setVisitStatus(id, status));
-    setSelectedRestaurant(null); // Deselect restaurant after status change
+    setSelectedRestaurant(null);
   };
-  
 
   const handleRestaurantPress = (restaurant) => {
     setSelectedRestaurant(
@@ -46,15 +47,35 @@ const HomeScreen = () => {
     );
   };
 
+  const handleLogout = () => {
+    const auth = getAuth();
+    signOut(auth)
+      .then(() => {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: 'Login' }],
+        });
+      })
+      .catch((error) => {
+        console.error('Error logging out:', error);
+      });
+  };
+
   return (
     <View style={styles.container}>
-      <TextInput
-        style={styles.searchBar}
-        placeholder="Search Restaurants"
-        value={searchQuery}
-        onChangeText={(text) => setSearchQuery(text)}
-      />
-      <Button title="Search" onPress={handleSearch} />
+      {/* Wrapper for Search Input and Search Icon */}
+      <View style={styles.searchContainer}>
+        <Image source={searchIcon} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchBar}
+          placeholder="Search Restaurants"
+          value={searchQuery}
+          onChangeText={(text) => setSearchQuery(text)}
+        />
+      </View>
+      <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+        <Text style={styles.searchButtonText}>Search</Text>
+      </TouchableOpacity>
 
       <View style={styles.filterContainer}>
         <TouchableOpacity onPress={() => setFilterStatus('Restaurants')} style={styles.filterButton}>
@@ -68,52 +89,60 @@ const HomeScreen = () => {
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={filteredRestaurants}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={styles.restaurantItem}>
-            <TouchableOpacity onPress={() => handleRestaurantPress(item)}>
-              <Text style={styles.restaurantName}>{item.name}</Text>
-              <Text>{item.location}</Text>
-            </TouchableOpacity>
-            {selectedRestaurant && selectedRestaurant.id === item.id && (
-              <View>
-                {!item.visited && !item.toVisit && (
-                  <>
-                    <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'toVisit')}>
-                      <Text style={styles.visitButton}>Mark as To Visit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
-                      <Text style={styles.visitButton}>Mark as Visited</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-                {item.toVisit && (
-                  <>
-                    <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
-                      <Text style={styles.visitButton}>Move to Visited</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
-                      <Text style={styles.visitButton}>Remove from To Visit</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-                {item.visited && (
-                  <>
-                    <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'toVisit')}>
-                      <Text style={styles.visitButton}>Move to To Visit</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
-                      <Text style={styles.visitButton}>Remove from Visited</Text>
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            )}
-          </View>
-        )}
-      />
+      {/* Wrapper for FlatList to limit its height */}
+      <View style={styles.listContainer}>
+        <FlatList
+          data={filteredRestaurants}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <View style={styles.restaurantItem}>
+              <TouchableOpacity onPress={() => handleRestaurantPress(item)}>
+                <Text style={styles.restaurantName}>{item.name}</Text>
+                <Text>{item.location}</Text>
+              </TouchableOpacity>
+              {selectedRestaurant && selectedRestaurant.id === item.id && (
+                <View>
+                  {!item.visited && !item.toVisit && (
+                    <>
+                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'toVisit')}>
+                        <Text style={styles.visitButton}>Mark as To Visit</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
+                        <Text style={styles.visitButton}>Mark as Visited</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                  {item.toVisit && (
+                    <>
+                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
+                        <Text style={styles.visitButton}>Move to Visited</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
+                        <Text style={styles.visitButton}>Remove from To Visit</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                  {item.visited && (
+                    <>
+                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'toVisit')}>
+                        <Text style={styles.visitButton}>Move to To Visit</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
+                        <Text style={styles.visitButton}>Remove from Visited</Text>
+                      </TouchableOpacity>
+                    </>
+                  )}
+                </View>
+              )}
+            </View>
+          )}
+        />
+      </View>
+
+      {/* Logout Button with TouchableOpacity */}
+      <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+        <Text style={styles.logoutButtonText}>Logout</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -122,15 +151,38 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 16,
-    backgroundColor: '#fff',
+    backgroundColor: '#F0F8FF',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  searchIcon: {
+    width: 24,
+    height: 24,
+    marginRight: 8,
   },
   searchBar: {
+    flex: 1,
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
     paddingHorizontal: 10,
-    marginBottom: 8,
     borderRadius: 8,
+  },
+  searchButton: {
+    backgroundColor: '#54C5E6', // sinertävä väri
+    paddingVertical: 8,
+    paddingHorizontal: 32,
+    borderRadius: 28,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
   filterContainer: {
     flexDirection: 'row',
@@ -141,11 +193,15 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   filterText: {
-    color: '#666',
+    color: 'black',
   },
   filterActive: {
-    color: 'tomato',
+    color: 'blue',
     fontWeight: 'bold',
+  },
+  listContainer: {
+    flex: 1, // Joustava tila, jotta FlatList ei vie liikaa tilaa
+    marginBottom: 20, // Jätä tilaa Logout-painikkeelle
   },
   restaurantItem: {
     padding: 16,
@@ -158,7 +214,20 @@ const styles = StyleSheet.create({
   },
   visitButton: {
     marginTop: 8,
-    color: 'dodgerblue',
+    color: '#F16842',
+  },
+  logoutButton: {
+    backgroundColor: '#F16842', // punertava väri
+    paddingVertical: 8,
+    paddingHorizontal: 32,
+    borderRadius: 28,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
   },
 });
 

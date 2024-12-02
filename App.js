@@ -33,7 +33,7 @@ function TabNavigator() {
             <Text style={{ fontSize: 24, color }}>🏠</Text>
           ),
           headerStyle: {
-            backgroundColor: 'orange',
+            backgroundColor: '#54C5E6',
           },
           headerTintColor: '#fff',
         }}
@@ -47,7 +47,7 @@ function TabNavigator() {
             <Text style={{ fontSize: 24, color }}>🗺️</Text>
           ),
           headerStyle: {
-            backgroundColor: 'purple',
+            backgroundColor: '#54C5E6',
           },
           headerTintColor: '#fff',
         }}
@@ -82,46 +82,47 @@ export default function App() {
   return (
     <Provider store={store}>
       <NavigationContainer>
-        <Stack.Navigator>
-          {isAuthenticated ? (
-            <Stack.Screen
-              name="Main"
-              component={TabNavigator}
-              options={{
-                headerShown: false,
-              }}
-            />
-          ) : (
-            <>
-              <Stack.Screen
-                name="Login"
-                component={LoginScreen}
-                options={{
-                  headerStyle: {
-                    backgroundColor: 'black',
-                  },
-                  headerTintColor: '#fff',
-                  headerTitleStyle: {
-                    fontWeight: 'bold',
-                  },
-                }}
-              />
-              <Stack.Screen
-                name="Register"
-                component={RegisterScreen}
-                options={{
-                  headerStyle: {
-                    backgroundColor: 'black',
-                  },
-                  headerTintColor: '#fff',
-                  headerTitleStyle: {
-                    fontWeight: 'bold',
-                  },
-                }}
-              />
-            </>
-          )}
-        </Stack.Navigator>
+      <Stack.Navigator>
+  {isAuthenticated ? (
+    <Stack.Screen
+      name="Main"
+      component={TabNavigator}
+      options={{
+        headerShown: false,
+      }}
+    />
+  ) : (
+    <>
+      <Stack.Screen
+  name="Login"
+  component={LoginScreen}
+  options={{
+    headerStyle: {
+      backgroundColor: '#54C5E6', // Käytetään sinistä väriä kuvasta
+    },
+    headerTintColor: '#fff',
+    headerTitleStyle: {
+      fontWeight: 'bold',
+    },
+  }}
+/>
+
+      <Stack.Screen
+        name="Register"
+        component={RegisterScreen}
+        options={{
+          headerStyle: {
+            backgroundColor: '#54C5E6',
+          },
+          headerTintColor: '#fff',
+          headerTitleStyle: {
+            fontWeight: 'bold',
+          },
+        }}
+      />
+    </>
+  )}
+</Stack.Navigator>
       </NavigationContainer>
     </Provider>
   );

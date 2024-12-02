@@ -13,7 +13,8 @@ export default function MapScreen() {
   const [currentLocation, setCurrentLocation] = useState(null);
   const [address, setAddress] = useState('');
   const [errorMsg, setErrorMsg] = useState(null);
-  const mapRef = useRef(null); // Ref to MapView
+  const [restaurants, setRestaurants] = useState([]);
+  const mapRef = useRef(null);
 
   // Funktio, joka pyytää sijaintiluvat ja hakee nykyisen sijainnin
   const getCurrentLocation = async () => {
@@ -30,14 +31,15 @@ export default function MapScreen() {
       latitudeDelta: 0.01,
       longitudeDelta: 0.01,
     });
-    setLocation(currentLocation.coords); // Asetetaan myös aluksi kartan katsottava sijainti nykyiseksi sijainniksi
+    setLocation(currentLocation.coords);
   };
 
   useEffect(() => {
     getCurrentLocation();
   }, []);
 
-  const getCoordinates = async () => {
+  // Hae osoitteen koordinaatit ja ravintolat
+  const getCoordinatesAndRestaurants = async () => {
     try {
       // Hae osoitteen koordinaatit Google Geocoding API:lla
       const response = await axios.get(
@@ -54,11 +56,12 @@ export default function MapScreen() {
         };
 
         setLocation(newLocation);
-        // Animoi kartta uuteen sijaintiin
         if (mapRef.current) {
           mapRef.current.animateToRegion(newLocation, 1000);
         }
 
+        // Hae ravintolat lähellä uutta sijaintia
+        getNearbyRestaurants(lat, lng);
         Keyboard.dismiss();
       } else {
         Alert.alert('Address not found');
@@ -69,11 +72,29 @@ export default function MapScreen() {
     }
   };
 
+  // Hae lähellä olevat ravintolat Google Places API:sta
+  const getNearbyRestaurants = async (lat, lng) => {
+    try {
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=1500&type=restaurant&key=${GOOGLE_PLACES_API_KEY}`
+      );
+
+      if (response.data.status === 'OK') {
+        setRestaurants(response.data.results);
+      } else {
+        Alert.alert('Failed to fetch restaurants', response.data.status);
+      }
+    } catch (error) {
+      console.error('Error fetching restaurants:', error);
+      Alert.alert('Failed to fetch nearby restaurants', 'Please try again.');
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
       <View style={styles.container}>
         <MapView
-          ref={mapRef} // Attach the ref to MapView
+          ref={mapRef}
           style={styles.map}
           initialRegion={{
             latitude: currentLocation ? currentLocation.latitude : 60.192059,
@@ -81,7 +102,7 @@ export default function MapScreen() {
             latitudeDelta: 0.0922,
             longitudeDelta: 0.0421,
           }}
-          region={location || currentLocation} // Kartan alue perustuu joko haettuun sijaintiin tai nykyiseen sijaintiin
+          region={location || currentLocation}
         >
           {/* Nykyisen sijainnin markkeri */}
           {currentLocation && (
@@ -104,6 +125,18 @@ export default function MapScreen() {
               title="Searched Location"
             />
           )}
+          {/* Lisää ravintolat markkereina */}
+          {restaurants.map((restaurant) => (
+            <Marker
+              key={restaurant.place_id}
+              coordinate={{
+                latitude: restaurant.geometry.location.lat,
+                longitude: restaurant.geometry.location.lng,
+              }}
+              title={restaurant.name}
+              description={restaurant.vicinity}
+            />
+          ))}
         </MapView>
 
         {/* Osoitteen haku ja painike */}
@@ -114,7 +147,7 @@ export default function MapScreen() {
             value={address}
             onChangeText={setAddress}
           />
-          <Button title="Search" onPress={getCoordinates} />
+          <Button title="Search" onPress={getCoordinatesAndRestaurants} />
         </View>
       </View>
     </TouchableWithoutFeedback>

@@ -5,7 +5,6 @@ import * as Location from 'expo-location';
 import axios from 'axios';
 
 // API-avain tulisi tallentaa turvallisesti esimerkiksi ympäristömuuttujiin.
-// Tämä on esimerkki siitä, että muuttuja on turvallisesti käytössä tässä tiedostossa.
 const GOOGLE_PLACES_API_KEY = 'AIzaSyBO-Z2JZ7S0rbJbnQw1PVmBmdJq8Z_XM5o';
 
 export default function MapScreen() {
@@ -40,6 +39,11 @@ export default function MapScreen() {
 
   // Hae osoitteen koordinaatit ja ravintolat
   const getCoordinatesAndRestaurants = async () => {
+    if (!address.trim()) {
+      Alert.alert('Please enter a valid address.');
+      return;
+    }
+
     try {
       // Hae osoitteen koordinaatit Google Geocoding API:lla
       const response = await axios.get(
@@ -134,7 +138,7 @@ export default function MapScreen() {
                 longitude: restaurant.geometry.location.lng,
               }}
               title={restaurant.name}
-              description={restaurant.vicinity}
+              description={`${restaurant.vicinity}\nRating: ${restaurant.rating}`}
             />
           ))}
         </MapView>

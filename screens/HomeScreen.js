@@ -91,52 +91,53 @@ const HomeScreen = ({ navigation }) => {
 
       {/* Wrapper for FlatList to limit its height */}
       <View style={styles.listContainer}>
-        <FlatList
-          data={filteredRestaurants}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <View style={styles.restaurantItem}>
-              <TouchableOpacity onPress={() => handleRestaurantPress(item)}>
-                <Text style={styles.restaurantName}>{item.name}</Text>
-                <Text>{item.location}</Text>
+      <FlatList
+  data={filteredRestaurants}
+  keyExtractor={(item) => item.id}
+  renderItem={({ item }) => (
+    <View style={styles.restaurantItem}>
+      <TouchableOpacity onPress={() => handleRestaurantPress(item)}>
+        <Text style={styles.restaurantName}>{item.name}</Text>
+        <Text>{item.location}</Text>
+        {/* Lisää arvostelutiedot */}
+        {item.rating && (
+          <Text style={styles.ratingText}>Rating: {item.rating} / 5</Text>
+        )}
+      </TouchableOpacity>
+      {selectedRestaurant && selectedRestaurant.id === item.id && (
+        <View>
+          {!item.visited && !item.toVisit && (
+            <>
+              <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'toVisit')}>
+                <Text style={styles.visitButton}>Mark as Visit</Text>
               </TouchableOpacity>
-              {selectedRestaurant && selectedRestaurant.id === item.id && (
-                <View>
-                  {!item.visited && !item.toVisit && (
-                    <>
-                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'toVisit')}>
-                        <Text style={styles.visitButton}>Mark as To Visit</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
-                        <Text style={styles.visitButton}>Mark as Visited</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                  {item.toVisit && (
-                    <>
-                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
-                        <Text style={styles.visitButton}>Move to Visited</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
-                        <Text style={styles.visitButton}>Remove from To Visit</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                  {item.visited && (
-                    <>
-                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'toVisit')}>
-                        <Text style={styles.visitButton}>Move to To Visit</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
-                        <Text style={styles.visitButton}>Remove from Visited</Text>
-                      </TouchableOpacity>
-                    </>
-                  )}
-                </View>
-              )}
-            </View>
+              <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
+                <Text style={styles.visitButton}>Mark as Visited</Text>
+              </TouchableOpacity>
+            </>
           )}
-        />
+          {item.toVisit && (
+            <>
+              <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'visited')}>
+                <Text style={styles.visitButton}>Move to Visited</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
+                <Text style={styles.visitButton}>Remove from Visit</Text>
+              </TouchableOpacity>
+            </>
+          )}
+          {item.visited && (
+            <>
+              <TouchableOpacity onPress={() => handleSetVisitStatus(item.id, 'remove')}>
+                <Text style={styles.visitButton}>Remove from Visited</Text>
+              </TouchableOpacity>
+            </>
+          )}
+        </View>
+      )}
+    </View>
+  )}
+/>
       </View>
 
       {/* Logout Button with TouchableOpacity */}
@@ -199,6 +200,11 @@ const styles = StyleSheet.create({
     color: 'blue',
     fontWeight: 'bold',
   },
+  ratingText: {
+    color: '#666', // Harmaa väri
+    fontSize: 14,
+    marginTop: 4,
+  },  
   listContainer: {
     flex: 1, // Joustava tila, jotta FlatList ei vie liikaa tilaa
     marginBottom: 20, // Jätä tilaa Logout-painikkeelle

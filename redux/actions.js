@@ -1,10 +1,9 @@
 import axios from 'axios';
 import { db } from '../firebase/FirebaseConfig';
-import { ref, set, push, get, child, update } from 'firebase/database';
+import { ref, set, get, child, update } from 'firebase/database';
 
 export const FETCH_RESTAURANTS = 'FETCH_RESTAURANTS';
 export const SET_VISIT_STATUS = 'SET_VISIT_STATUS';
-export const ADD_RESTAURANT = 'ADD_RESTAURANT';
 
 const GOOGLE_PLACES_API_KEY = 'AIzaSyBO-Z2JZ7S0rbJbnQw1PVmBmdJq8Z_XM5o';
 
@@ -20,6 +19,7 @@ export const fetchRestaurants = (searchTerm) => {
         id: place.place_id,
         name: place.name,
         location: place.formatted_address,
+        rating: place.rating,
         visited: false,
         toVisit: false,
       }));
@@ -43,18 +43,6 @@ export const fetchRestaurants = (searchTerm) => {
       });
     } catch (error) {
       console.error('Error fetching restaurants:', error);
-    }
-  };
-};
-
-// Lisää ravintola Firebaseen (jos tarvitset erillisen toiminnon lisäämiselle)
-export const addRestaurant = (restaurant) => {
-  return async () => {
-    try {
-      const restaurantRef = ref(db, `restaurants/${restaurant.id}`);
-      await set(restaurantRef, restaurant);
-    } catch (error) {
-      console.error('Error adding restaurant:', error);
     }
   };
 };
@@ -102,5 +90,3 @@ export const setVisitStatus = (id, status) => {
     }
   };
 };
-
-
